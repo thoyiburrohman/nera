@@ -53,7 +53,35 @@ Tanpa akun.
 ## 📦 Instalasi & Penggunaan
 
 ### 1. Jalankan Lokal
-Cukup buka file:
+Cukup klik link:
 
-```text
-index.html
+```url
+https://thoyiburrohman.github.io/nera/
+```
+
+## ⚠️ Catatan Penting tentang Scan Struk
+
+Fitur **Scan Struk** di Nera menggunakan teknologi OCR (Optical Character Recognition) untuk membantu mengisi data transaksi.
+
+Perlu diperhatikan:
+
+- **Nominal (Total)**
+  - Nominal diambil dari teks yang terdeteksi sebagai *TOTAL / JUMLAH* pada struk.
+  - Hasil OCR **bisa keliru** tergantung:
+    - kualitas foto
+    - pencahayaan
+    - format struk
+  - **Selalu cek ulang nominal sebelum menyimpan transaksi.**
+
+- **Deskripsi / Item Belanja**
+  - Item yang muncul di kolom deskripsi diambil dari baris teks yang *diduga* sebagai item belanja.
+  - Nama item **tidak selalu akurat** dan bisa mengandung kesalahan OCR.
+  - Deskripsi bersifat **bantuan visual**, bukan data finansial utama.
+
+- **Rekomendasi**
+  - Gunakan scan struk sebagai **alat bantu**, bukan sumber kebenaran mutlak.
+  - Lakukan **pengecekan manual** sebelum menekan tombol *Simpan*.
+
+Nera sengaja tidak melakukan koreksi otomatis atau validasi agresif,  
+karena tujuan utamanya adalah **kesadaran dan kesederhanaan**, bukan otomatisasi penuh.
+
