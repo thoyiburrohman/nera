@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinanceFlow - Smart Tracker</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="https://unpkg.com/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+
+      /* Animasi Garis Scan */
+      @keyframes scan {
+        0% {
+          top: 0%;
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
+      .scan-line {
+        height: 2px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          #6366f1,
+          transparent
+        );
+        position: absolute;
+        width: 100%;
+        z-index: 20;
+        animation: scan 2s infinite linear;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-50 text-slate-900 min-h-screen pb-12">
+    <div
+      class="max-w-md mx-auto px-4 pt-8"
+      x-data="moneyApp()"
+      x-init="init()"
+      x-cloak
+    >
+      <header class="flex justify-between items-center mb-8">
+        <div>
+          <h1
+            class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent"
+          >
+            FinanceFlow
+          </h1>
+          <p class="text-slate-400 text-sm">Cerdas kelola keuangan</p>
+        </div>
+        <div class="relative group">
+          <div
+            class="w-10 h-10 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center text-indigo-600 font-bold overflow-hidden transition-transform group-hover:scale-110"
+          >
+            <span x-text="userName.split(' ').map(n => n[0]).join('')"></span>
+          </div>
+        </div>
+      </header>
+
+      <div
+        class="bg-indigo-600 rounded-[2rem] p-6 shadow-2xl shadow-indigo-200 text-white mb-8 relative overflow-hidden"
+      >
+        <div class="relative z-10">
+          <div class="flex justify-between items-start mb-2">
+            <p
+              class="text-indigo-100 text-xs font-medium opacity-80 uppercase tracking-widest"
+            >
+              Total Saldo Anda
+            </p>
+            <svg
+              class="w-6 h-6 text-indigo-300 opacity-50"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M21 18V19C21 20.1 20.1 21 19 21H5C3.89 21 3 20.1 3 19V5C3 3.9 3.89 3 5 3H19C20.1 3 21 3.9 21 5V6H12C10.89 6 10 6.89 10 8V16C10 17.11 10.89 18 12 18H21ZM12 16H22V8H12V16ZM16 13.5C15.17 13.5 14.5 12.83 14.5 12C14.5 11.17 15.17 10.5 16 10.5C16.83 10.5 17.5 11.17 17.5 12C17.5 12.83 16.83 13.5 16 13.5Z"
+              />
+            </svg>
+          </div>
+          <h2
+            class="text-3xl font-bold mb-8 leading-tight"
+            x-text="'Rp ' + format(saldo)"
+          ></h2>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-3 transition-all hover:bg-white/20"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <div class="p-1 bg-emerald-400 rounded-full">
+                  <svg
+                    class="w-2 h-2 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    ></path>
+                  </svg>
+                </div>
+                <span
+                  class="text-[10px] text-indigo-100 uppercase font-bold tracking-tighter"
+                  >Masuk</span
+                >
+              </div>
+              <p class="font-bold text-sm" x-text="format(totalIncome)"></p>
+            </div>
+            <div
+              class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-3 transition-all hover:bg-white/20"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <div class="p-1 bg-rose-400 rounded-full text-white">
+                  <svg
+                    class="w-2 h-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      d="M5 10l7-7m0 0l7 7m-7-7v18"
+                    ></path>
+                  </svg>
+                </div>
+                <span
+                  class="text-[10px] text-indigo-100 uppercase font-bold tracking-tighter"
+                  >Keluar</span
+                >
+              </div>
+              <p class="font-bold text-sm" x-text="format(totalExpense)"></p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"
+        ></div>
+        <div
+          class="absolute left-1/2 top-0 w-24 h-24 bg-indigo-400/20 rounded-full blur-xl"
+        ></div>
+      </div>
+
+      <section
+        class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 mb-8 relative"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-bold text-slate-800">Transaksi Baru</h3>
+
+          <label
+            class="cursor-pointer flex items-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-indigo-100 transition-colors"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            Scan Struk
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              @change="scanStruk($event)"
+              class="hidden"
+            />
+          </label>
+        </div>
+
+        <div
+          x-show="loadingOCR"
+          x-transition
+          class="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 rounded-[2rem] flex flex-col items-center justify-center p-6 text-center"
+        >
+          <div
+            class="relative w-24 h-32 bg-slate-100 rounded-lg border-2 border-indigo-200 mb-4 overflow-hidden shadow-inner"
+          >
+            <div class="scan-line"></div>
+            <div class="flex flex-col gap-2 p-2 mt-4">
+              <div class="h-2 w-full bg-slate-200 rounded"></div>
+              <div class="h-2 w-3/4 bg-slate-200 rounded"></div>
+              <div class="h-2 w-1/2 bg-slate-200 rounded"></div>
+            </div>
+          </div>
+          <p class="text-sm font-bold text-slate-700">Menganalisa Struk...</p>
+          <p
+            class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest"
+            x-text="progress + '%'"
+          ></p>
+        </div>
+
+        <form @submit.prevent="add()">
+          <div
+            class="flex bg-slate-50 p-1.5 rounded-2xl mb-6 border border-slate-100"
+          >
+            <button
+              type="button"
+              @click="form.type = 'income'; updateDefaultCategory()"
+              :class="form.type === 'income' ? 'bg-white shadow-md text-indigo-600' : 'text-slate-400'"
+              class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all"
+            >
+              Pemasukan
+            </button>
+            <button
+              type="button"
+              @click="form.type = 'expense'; updateDefaultCategory()"
+              :class="form.type === 'expense' ? 'bg-white shadow-md text-rose-600' : 'text-slate-400'"
+              class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all"
+            >
+              Pengeluaran
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] uppercase tracking-widest font-bold text-slate-400 ml-1"
+                  >Kategori</label
+                >
+                <div class="relative">
+                  <select
+                    x-model="form.category"
+                    class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 transition-all appearance-none outline-none"
+                  >
+                    <template x-if="form.type === 'income'">
+                      <optgroup label="Sumber Dana">
+                        <option>Gaji</option>
+                        <option>Freelance</option>
+                        <option>Bonus</option>
+                        <option>Lainnya</option>
+                      </optgroup>
+                    </template>
+                    <template x-if="form.type === 'expense'">
+                      <optgroup label="Kebutuhan">
+                        <option>Makan</option>
+                        <option>Transport</option>
+                        <option>Belanja</option>
+                        <option>Hiburan</option>
+                        <option>Tagihan</option>
+                        <option>Lainnya</option>
+                      </optgroup>
+                    </template>
+                  </select>
+                  <div
+                    class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label
+                  class="text-[10px] uppercase tracking-widest font-bold text-slate-400 ml-1"
+                  >Nominal</label
+                >
+                <input
+                  type="number"
+                  x-model.number="form.amount"
+                  placeholder="0"
+                  class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none font-bold text-indigo-600"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label
+                class="text-[10px] uppercase tracking-widest font-bold text-slate-400 ml-1"
+                >Keterangan</label
+              >
+              <input
+                type="text"
+                x-model="form.note"
+                placeholder="Contoh: Makan siang di kantor"
+                class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+              />
+            </div>
+
+            <button
+              class="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all transform active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Simpan Transaksi</span>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <div class="flex justify-between items-end mb-4 px-2">
+          <h3 class="font-bold text-slate-800">Riwayat Terakhir</h3>
+          <button
+            @click="clearHistory()"
+            class="text-[10px] uppercase tracking-tighter text-slate-400 font-bold hover:text-rose-500 transition-colors"
+          >
+            Reset Data
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <template x-if="transactions.length === 0">
+            <div
+              class="text-center py-12 bg-white rounded-[2rem] border border-dashed border-slate-200"
+            >
+              <div
+                class="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300"
+              >
+                <svg
+                  class="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p class="text-slate-400 text-sm font-medium">
+                Belum ada aktivitas hari ini
+              </p>
+            </div>
+          </template>
+
+          <template x-for="(t, i) in transactions" :key="i">
+            <div
+              class="bg-white p-4 rounded-3xl flex items-center justify-between shadow-sm border border-slate-50 group transition-all hover:translate-x-1 active:scale-[0.98]"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  :class="t.type === 'income' ? 'bg-emerald-50 text-emerald-500 border-emerald-100' : 'bg-rose-50 text-rose-500 border-rose-100'"
+                  class="w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors group-hover:bg-white"
+                >
+                  <template x-if="t.type === 'income'">
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </template>
+                  <template x-if="t.type === 'expense'">
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M20 12H4"
+                      />
+                    </svg>
+                  </template>
+                </div>
+                <div>
+                  <p
+                    class="font-bold text-slate-800 text-sm"
+                    x-text="t.category"
+                  ></p>
+                  <p
+                    class="text-[10px] text-slate-400 font-medium"
+                    x-text="t.date + (t.note ? ' • ' + t.note : '')"
+                  ></p>
+                </div>
+              </div>
+              <div class="text-right flex items-center gap-4">
+                <p
+                  :class="t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'"
+                  class="font-extrabold text-sm tracking-tight"
+                  x-text="(t.type === 'income' ? '+' : '-') + format(t.amount)"
+                ></p>
+                <button
+                  @click="deleteItem(i)"
+                  class="text-slate-200 hover:text-rose-500 transition-colors"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      function moneyApp() {
+        return {
+          userName: "Thoyiburrohman", // Nama user dari context
+          transactions: [],
+          form: {
+            type: "income",
+            category: "Gaji",
+            amount: null,
+            note: "",
+          },
+          progress: 0,
+          loadingOCR: false,
+
+          get totalIncome() {
+            return this.transactions
+              .filter((t) => t.type === "income")
+              .reduce((a, b) => a + b.amount, 0);
+          },
+
+          get totalExpense() {
+            return this.transactions
+              .filter((t) => t.type === "expense")
+              .reduce((a, b) => a + b.amount, 0);
+          },
+
+          get saldo() {
+            return this.totalIncome - this.totalExpense;
+          },
+
+          init() {
+            this.transactions =
+              JSON.parse(localStorage.getItem("money_flow")) || [];
+          },
+
+          updateDefaultCategory() {
+            this.form.category = this.form.type === "income" ? "Gaji" : "Makan";
+          },
+
+          add() {
+            if (!this.form.category || !this.form.amount) return;
+
+            this.transactions.unshift({
+              ...this.form,
+              date: new Date().toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              }),
+            });
+
+            this.save();
+            this.form.amount = null;
+            this.form.note = "";
+          },
+
+          deleteItem(index) {
+            if (confirm("Hapus transaksi ini?")) {
+              this.transactions.splice(index, 1);
+              this.save();
+            }
+          },
+
+          clearHistory() {
+            if (confirm("Hapus semua riwayat transaksi?")) {
+              this.transactions = [];
+              this.save();
+            }
+          },
+
+          save() {
+            localStorage.setItem(
+              "money_flow",
+              JSON.stringify(this.transactions)
+            );
+          },
+
+          format(n) {
+            return new Intl.NumberFormat("id-ID").format(n);
+          },
+
+          // OCR Logic
+          async resizeImage(file) {
+            return new Promise((resolve) => {
+              const img = new Image();
+              const reader = new FileReader();
+              reader.onload = (e) => (img.src = e.target.result);
+              reader.readAsDataURL(file);
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const maxWidth = 1024;
+                const scale = Math.min(maxWidth / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", 0.8));
+              };
+            });
+          },
+
+          async scanStruk(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            this.loadingOCR = true;
+            this.progress = 0;
+
+            try {
+              const image = await this.resizeImage(file);
+              const { data } = await Tesseract.recognize(image, "eng", {
+                logger: (m) => {
+                  if (m.status === "recognizing text") {
+                    this.progress = Math.round(m.progress * 100);
+                  }
+                },
+              });
+
+              // Regex untuk mencari nominal di struk
+              const text = data.text;
+              const numbers =
+                text
+                  .replace(/,/g, ".") // Normalisasi koma ke titik
+                  .match(/\d{1,3}(\.\d{3})+/g) // Cari format 10.000
+                  ?.map((n) => parseInt(n.replace(/\./g, ""))) ||
+                text.match(/\d{4,}/g)?.map((n) => parseInt(n)) ||
+                []; // Fallback angka panjang
+
+              if (numbers.length) {
+                this.form.amount = Math.max(...numbers);
+                this.form.type = "expense"; // Biasanya scan struk itu belanja
+                this.updateDefaultCategory();
+                this.form.note = "Scan struk otomatis";
+              } else {
+                alert("Nominal tidak ditemukan. Coba foto lebih jelas.");
+              }
+            } catch (e) {
+              alert("Gagal membaca gambar.");
+              console.error(e);
+            } finally {
+              this.loadingOCR = false;
+              event.target.value = ""; // Reset input
+            }
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
